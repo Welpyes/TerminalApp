@@ -20,25 +20,43 @@
 let convertTouchToMouse = false;
 let lastTouchX = null; // For two-finger scroll
 let lastTouchY = null; // For two-finger scroll
+let lastDistance = null; // For pinch-to-zoom detection
+
 function touchHandler(event) {
-  // Two-finger scroll
+  // Two-finger scroll/pinch
   if (event.touches && event.touches.length === 2) {
     const touch1 = event.touches[0];
     const touch2 = event.touches[1];
     const currentX = (touch1.clientX + touch2.clientX) / 2;
     const currentY = (touch1.clientY + touch2.clientY) / 2;
+    const currentDistance = Math.hypot(
+      touch1.clientX - touch2.clientX,
+      touch1.clientY - touch2.clientY
+    );
 
     switch (event.type) {
       case 'touchstart':
         lastTouchX = currentX;
         lastTouchY = currentY;
+        lastDistance = currentDistance;
         break;
       case 'touchmove':
-        if (lastTouchY !== null) {
+        if (lastTouchY !== null && lastDistance !== null) {
           const deltaX = lastTouchX - currentX;
           const deltaY = lastTouchY - currentY;
+          const deltaDistance = Math.abs(lastDistance - currentDistance);
+
+          // If distance changed significantly, it's a pinch. Let WebView handle it.
+          if (deltaDistance > 5) {
+            lastTouchX = currentX;
+            lastTouchY = currentY;
+            lastDistance = currentDistance;
+            return;
+          }
+
           lastTouchX = currentX;
           lastTouchY = currentY;
+          lastDistance = currentDistance;
 
           const wheelEvent = new WheelEvent('wheel', {
             bubbles: true,
@@ -58,6 +76,7 @@ function touchHandler(event) {
   } else if (lastTouchX != null || lastTouchY !== null) {
     lastTouchX = null;
     lastTouchY = null;
+    lastDistance = null;
   }
   const contextmenuByTouch =
       event.type === 'contextmenu' && event.pointerType === 'touch';

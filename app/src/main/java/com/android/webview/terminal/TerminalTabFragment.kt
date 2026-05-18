@@ -124,6 +124,9 @@ class TerminalTabFragment() : Fragment() {
         terminalView.settings.domStorageEnabled = true
         terminalView.settings.javaScriptEnabled = true
         terminalView.settings.cacheMode = WebSettings.LOAD_DEFAULT
+        terminalView.settings.setSupportZoom(true)
+        terminalView.settings.builtInZoomControls = true
+        terminalView.settings.displayZoomControls = false
 
         terminalView.webChromeClient = TerminalWebChromeClient()
         terminalView.webViewClient = TerminalWebViewClient()
@@ -232,6 +235,11 @@ class TerminalTabFragment() : Fragment() {
 
                             bootProgressView.visibility = View.GONE
                             terminalView.visibility = View.VISIBLE
+                            val webViewManager = WebViewManager.getInstance(view.context)
+                            terminalView.applyFontSettings(
+                                webViewManager.fontSize,
+                                webViewManager.fontFamily,
+                            )
                             terminalView.mapTouchToMouseEvent()
                             terminalView.applyTerminalDisconnectCallback()
                             updateMainActivity()

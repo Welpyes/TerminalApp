@@ -39,9 +39,31 @@ private constructor(private val sharedPref: SharedPreferences) {
                 sharedPref.edit { putString(URL_KEY, value) }
             }
 
+    var fontSize: Int
+        get() =
+            synchronized(lock) {
+                return sharedPref.getInt(FONT_SIZE_KEY, 14)
+            }
+        set(value) =
+            synchronized(lock) {
+                sharedPref.edit { putInt(FONT_SIZE_KEY, value) }
+            }
+
+    var fontFamily: String
+        get() =
+            synchronized(lock) {
+                return sharedPref.getString(FONT_FAMILY_KEY, "monospace") ?: "monospace"
+            }
+        set(value) =
+            synchronized(lock) {
+                sharedPref.edit { putString(FONT_FAMILY_KEY, value) }
+            }
+
     companion object {
         private const val PREFS_NAME = ".WEBVIEW"
         private const val URL_KEY = "url"
+        private const val FONT_SIZE_KEY = "font_size"
+        private const val FONT_FAMILY_KEY = "font_family"
 
         @Volatile private var instance: WebViewManager? = null
 

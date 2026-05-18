@@ -51,12 +51,9 @@ class SettingsItemAdapter(private val dataSet: List<SettingsItem>) :
 
         viewHolder.card.setOnClickListener { view ->
             val type = dataSet[position].settingsItemEnum
+            val webViewManager = WebViewManager.getInstance(view.context)
             if (type == SettingsItemEnum.WebViewSettingsItem) {
-                val webViewManager = WebViewManager.getInstance(view.context)
                 val currentUrl = webViewManager.webViewUrl
-                val originalSelection = currentUrl
-                var newSelection = originalSelection
-
                 val inputUrl = EditText(view.context)
                 inputUrl.inputType = InputType.TYPE_CLASS_TEXT
                 inputUrl.setText(currentUrl)
@@ -64,9 +61,9 @@ class SettingsItemAdapter(private val dataSet: List<SettingsItem>) :
                 AlertDialog.Builder(view.context)
                     .setTitle(R.string.settings_webview_url_title)
                     .setPositiveButton(android.R.string.ok) { dialog, which ->
-                        newSelection = inputUrl.text.toString()
-                        if (originalSelection != newSelection) {
-                            webViewManager.webViewUrl = newSelection
+                        val newUrl = inputUrl.text.toString()
+                        if (currentUrl != newUrl) {
+                            webViewManager.webViewUrl = newUrl
                             Toast.makeText(
                                     view.context,
                                     R.string.settings_graphics_acceleration_toast_reboot_required,
@@ -79,6 +76,60 @@ class SettingsItemAdapter(private val dataSet: List<SettingsItem>) :
                         dialog.dismiss()
                     }
                     .setView(inputUrl)
+                    .create()
+                    .show()
+                return@setOnClickListener
+            } else if (type == SettingsItemEnum.FontSizeSettingsItem) {
+                val currentSize = webViewManager.fontSize
+                val inputSize = EditText(view.context)
+                inputSize.inputType = InputType.TYPE_CLASS_NUMBER
+                inputSize.setText(currentSize.toString())
+
+                AlertDialog.Builder(view.context)
+                    .setTitle(R.string.settings_font_size_title)
+                    .setPositiveButton(android.R.string.ok) { dialog, which ->
+                        val newSize = inputSize.text.toString().toIntOrNull() ?: currentSize
+                        if (currentSize != newSize) {
+                            webViewManager.fontSize = newSize
+                            Toast.makeText(
+                                    view.context,
+                                    R.string.settings_graphics_acceleration_toast_reboot_required,
+                                    Toast.LENGTH_SHORT,
+                                )
+                                .show()
+                        }
+                    }
+                    .setNegativeButton(android.R.string.cancel) { dialog, which ->
+                        dialog.dismiss()
+                    }
+                    .setView(inputSize)
+                    .create()
+                    .show()
+                return@setOnClickListener
+            } else if (type == SettingsItemEnum.FontFamilySettingsItem) {
+                val currentFamily = webViewManager.fontFamily
+                val inputFamily = EditText(view.context)
+                inputFamily.inputType = InputType.TYPE_CLASS_TEXT
+                inputFamily.setText(currentFamily)
+
+                AlertDialog.Builder(view.context)
+                    .setTitle(R.string.settings_font_family_title)
+                    .setPositiveButton(android.R.string.ok) { dialog, which ->
+                        val newFamily = inputFamily.text.toString()
+                        if (currentFamily != newFamily) {
+                            webViewManager.fontFamily = newFamily
+                            Toast.makeText(
+                                    view.context,
+                                    R.string.settings_graphics_acceleration_toast_reboot_required,
+                                    Toast.LENGTH_SHORT,
+                                )
+                                .show()
+                        }
+                    }
+                    .setNegativeButton(android.R.string.cancel) { dialog, which ->
+                        dialog.dismiss()
+                    }
+                    .setView(inputFamily)
                     .create()
                     .show()
                 return@setOnClickListener

@@ -40,6 +40,24 @@ class SettingsActivity : AppCompatActivity() {
             )
         )
 
+        settingsItems.add(
+            SettingsItem(
+                resources.getString(R.string.settings_font_size_title),
+                resources.getString(R.string.settings_font_size_subtitle),
+                R.drawable.ic_display,
+                SettingsItemEnum.FontSizeSettingsItem,
+            )
+        )
+
+        settingsItems.add(
+            SettingsItem(
+                resources.getString(R.string.settings_font_family_title),
+                resources.getString(R.string.settings_font_family_subtitle),
+                R.drawable.ic_display,
+                SettingsItemEnum.FontFamilySettingsItem,
+            )
+        )
+
         val settingsListItemAdapter = SettingsItemAdapter(settingsItems)
 
         val recyclerView: RecyclerView = findViewById(R.id.settings_list_recycler_view)

@@ -210,4 +210,13 @@
     <string name="settings_graphics_acceleration_software_renderer">Software renderer</string>
     <!-- Hardware-based renderer [CHAR LIMIT=none] -->
     <string name="settings_graphics_acceleration_hardware_renderer">GPU-accelerated renderer</string>
+
+    <!-- Settings menu title for font size [CHAR LIMIT=none] -->
+    <string name="settings_font_size_title">Font size</string>
+    <!-- Settings menu subtitle for font size [CHAR LIMIT=none] -->
+    <string name="settings_font_size_subtitle">Change terminal text size.</string>
+    <!-- Settings menu title for font family [CHAR LIMIT=none] -->
+    <string name="settings_font_family_title">Font family</string>
+    <!-- Settings menu subtitle for font family [CHAR LIMIT=none] -->
+    <string name="settings_font_family_subtitle">Change terminal font.</string>
 </resources>

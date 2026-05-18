@@ -17,6 +17,8 @@ package com.android.webview.terminal
 
 enum class SettingsItemEnum {
     WebViewSettingsItem,
+    FontSizeSettingsItem,
+    FontFamilySettingsItem,
 }
 
 class SettingsItem(

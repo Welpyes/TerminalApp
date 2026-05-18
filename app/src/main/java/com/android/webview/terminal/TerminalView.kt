@@ -46,6 +46,7 @@ class TerminalView(context: Context, attrs: AttributeSet?) :
     private val terminalClose: String = readAssetAsString(context, "js/terminal_close.js")
     private val touchToMouseHandler: String =
         readAssetAsString(context, "js/touch_to_mouse_handler.js")
+    private val fontHandler: String = readAssetAsString(context, "js/font_handler.js")
     private val a11yManager =
         context.getSystemService(AccessibilityManager::class.java).also {
             it.addTouchExplorationStateChangeListener(this)
@@ -55,6 +56,11 @@ class TerminalView(context: Context, attrs: AttributeSet?) :
     @Throws(IOException::class)
     private fun readAssetAsString(context: Context, filePath: String): String {
         return String(context.assets.open(filePath).readBytes())
+    }
+
+    fun applyFontSettings(fontSize: Int, fontFamily: String) {
+        this.evaluateJavascript(fontHandler, null)
+        this.evaluateJavascript("window.applyFontSettings($fontSize, '$fontFamily')", null)
     }
 
     fun mapTouchToMouseEvent() {
