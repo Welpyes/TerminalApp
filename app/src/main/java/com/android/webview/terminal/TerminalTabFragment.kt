@@ -34,6 +34,8 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.TextView
+import android.net.Uri
+import android.util.Base64
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.android.webview.terminal.CertificateUtils.createOrGetKey

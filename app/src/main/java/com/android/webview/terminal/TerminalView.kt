@@ -32,12 +32,7 @@ import android.view.inputmethod.InputConnection
 import android.webkit.WebView
 import com.android.webview.terminal.MainActivity.Companion.TAG
 import java.io.IOException
-
-
 import android.view.ScaleGestureDetector
-import android.webkit.WebView
-import com.android.webview.terminal.MainActivity.Companion.TAG
-import java.io.IOException
 import android.view.MotionEvent
 import android.util.Base64
 import android.net.Uri
