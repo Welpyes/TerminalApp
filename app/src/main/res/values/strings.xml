@@ -219,4 +219,9 @@
     <string name="settings_font_family_title">Font family</string>
     <!-- Settings menu subtitle for font family [CHAR LIMIT=none] -->
     <string name="settings_font_family_subtitle">Change terminal font.</string>
+
+    <!-- Settings menu title for font picker [CHAR LIMIT=none] -->
+    <string name="settings_font_picker_title">Custom font file</string>
+    <!-- Settings menu subtitle for font picker [CHAR LIMIT=none] -->
+    <string name="settings_font_picker_subtitle">Pick a .ttf or .otf file from storage.</string>
 </resources>

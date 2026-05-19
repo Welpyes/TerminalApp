@@ -34,10 +34,20 @@ import com.android.webview.terminal.MainActivity.Companion.TAG
 import java.io.IOException
 
 
+import android.view.ScaleGestureDetector
+import android.webkit.WebView
+import com.android.webview.terminal.MainActivity.Companion.TAG
+import java.io.IOException
+import android.view.MotionEvent
+import android.util.Base64
+import android.net.Uri
+
+
 class TerminalView(context: Context, attrs: AttributeSet?) :
     WebView(context, attrs),
     AccessibilityManager.AccessibilityStateChangeListener,
-    AccessibilityManager.TouchExplorationStateChangeListener {
+    AccessibilityManager.TouchExplorationStateChangeListener,
+    WebViewManager.OnSettingsChangeListener {
     private val ctrlKeyHandler: String = readAssetAsString(context, "js/ctrl_key_handler.js")
     private val enableCtrlKey: String = readAssetAsString(context, "js/enable_ctrl_key.js")
     private val disableCtrlKey: String = readAssetAsString(context, "js/disable_ctrl_key.js")
@@ -53,14 +63,68 @@ class TerminalView(context: Context, attrs: AttributeSet?) :
             it.addAccessibilityStateChangeListener(this)
         }
 
+    private val scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        private var lastSpan = 0f
+        override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+            lastSpan = detector.currentSpan
+            return true
+        }
+        override fun onScale(detector: ScaleGestureDetector): Boolean {
+            val webViewManager = WebViewManager.getInstance(context)
+            val span = detector.currentSpan
+            val delta = span - lastSpan
+            if (Math.abs(delta) > 20) {
+                val change = if (delta > 0) 1 else -1
+                webViewManager.fontSize = (webViewManager.fontSize + change).coerceIn(4, 100)
+                lastSpan = span
+            }
+            return true
+        }
+    })
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        scaleDetector.onTouchEvent(event)
+        return super.onTouchEvent(event)
+    }
+
+    override fun onSettingsChanged() {
+        val webViewManager = WebViewManager.getInstance(context)
+        post {
+            applyFontSettings(
+                webViewManager.fontSize,
+                webViewManager.fontFamily,
+                getCustomFontBase64(webViewManager.customFontPath)
+            )
+        }
+    }
+
+    private fun getCustomFontBase64(path: String?): String? {
+        if (path == null) return null
+        return try {
+            val uri = Uri.parse(path)
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                Base64.encodeToString(inputStream.readBytes(), Base64.NO_WRAP)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to read font file", e)
+            null
+        }
+    }
+
     @Throws(IOException::class)
     private fun readAssetAsString(context: Context, filePath: String): String {
         return String(context.assets.open(filePath).readBytes())
     }
 
-    fun applyFontSettings(fontSize: Int, fontFamily: String) {
+    fun applyFontSettings(fontSize: Int, fontFamily: String, customFontBase64: String? = null) {
         this.evaluateJavascript(fontHandler, null)
-        this.evaluateJavascript("window.applyFontSettings($fontSize, '$fontFamily')", null)
+        val fontData = customFontBase64 ?: "null"
+        val jsCall = if (customFontBase64 != null) {
+            "window.applyFontSettings($fontSize, '$fontFamily', '$fontData')"
+        } else {
+            "window.applyFontSettings($fontSize, '$fontFamily', null)"
+        }
+        this.evaluateJavascript(jsCall, null)
     }
 
     fun mapTouchToMouseEvent() {

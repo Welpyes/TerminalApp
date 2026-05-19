@@ -19,6 +19,7 @@ enum class SettingsItemEnum {
     WebViewSettingsItem,
     FontSizeSettingsItem,
     FontFamilySettingsItem,
+    FontPickerSettingsItem,
 }
 
 class SettingsItem(

@@ -15,7 +15,7 @@
  */
 
 (function() {
-  window.applyFontSettings = function(fontSize, fontFamily) {
+  window.applyFontSettings = function(fontSize, fontFamily, customFontBase64) {
     const styleId = 'terminal-font-settings';
     let style = document.getElementById(styleId);
     if (!style) {
@@ -23,21 +23,45 @@
       style.id = styleId;
       document.head.appendChild(style);
     }
+
+    let fontFace = '';
+    let finalFontFamily = fontFamily;
+
+    if (customFontBase64) {
+      finalFontFamily = 'CustomTerminalFont';
+      fontFace = `
+        @font-face {
+          font-family: 'CustomTerminalFont';
+          src: url(data:font/ttf;base64,${customFontBase64});
+        }
+      `;
+    }
+
     style.textContent = `
+      ${fontFace}
       .xterm-rows {
-        font-family: ${fontFamily} !important;
+        font-family: ${finalFontFamily} !important;
         font-size: ${fontSize}px !important;
       }
       .xterm-helper-textarea {
-        font-family: ${fontFamily} !important;
+        font-family: ${finalFontFamily} !important;
         font-size: ${fontSize}px !important;
       }
-      /* Ensure the cursor and other elements also use the font */
       .xterm {
-        font-family: ${fontFamily} !important;
+        font-family: ${finalFontFamily} !important;
       }
     `;
-    // Trigger window resize to help xterm.js recalculate dimensions if it's listening
+
+    // xterm.js specific update via window.term
+    if (window.term) {
+      window.term.options.fontSize = fontSize;
+      window.term.options.fontFamily = finalFontFamily;
+      // Force refresh of the terminal
+      if (window.term.refresh) {
+          window.term.refresh(0, window.term.rows - 1);
+      }
+    }
+
     window.dispatchEvent(new Event('resize'));
   };
 })();

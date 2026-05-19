@@ -91,12 +91,6 @@ class SettingsItemAdapter(private val dataSet: List<SettingsItem>) :
                         val newSize = inputSize.text.toString().toIntOrNull() ?: currentSize
                         if (currentSize != newSize) {
                             webViewManager.fontSize = newSize
-                            Toast.makeText(
-                                    view.context,
-                                    R.string.settings_graphics_acceleration_toast_reboot_required,
-                                    Toast.LENGTH_SHORT,
-                                )
-                                .show()
                         }
                     }
                     .setNegativeButton(android.R.string.cancel) { dialog, which ->
@@ -118,12 +112,6 @@ class SettingsItemAdapter(private val dataSet: List<SettingsItem>) :
                         val newFamily = inputFamily.text.toString()
                         if (currentFamily != newFamily) {
                             webViewManager.fontFamily = newFamily
-                            Toast.makeText(
-                                    view.context,
-                                    R.string.settings_graphics_acceleration_toast_reboot_required,
-                                    Toast.LENGTH_SHORT,
-                                )
-                                .show()
                         }
                     }
                     .setNegativeButton(android.R.string.cancel) { dialog, which ->
@@ -132,6 +120,9 @@ class SettingsItemAdapter(private val dataSet: List<SettingsItem>) :
                     .setView(inputFamily)
                     .create()
                     .show()
+                return@setOnClickListener
+            } else if (type == SettingsItemEnum.FontPickerSettingsItem) {
+                (view.context as? SettingsActivity)?.pickFont()
                 return@setOnClickListener
             }
         }

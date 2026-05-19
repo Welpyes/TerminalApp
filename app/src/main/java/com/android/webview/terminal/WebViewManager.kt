@@ -22,6 +22,35 @@ import androidx.core.content.edit
 class WebViewManager
 private constructor(private val sharedPref: SharedPreferences) {
     private val lock = Any()
+    private val listeners = mutableListOf<OnSettingsChangeListener>()
+
+    interface OnSettingsChangeListener {
+        fun onSettingsChanged()
+    }
+
+    private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == URL_KEY || key == FONT_SIZE_KEY || key == FONT_FAMILY_KEY || key == CUSTOM_FONT_PATH_KEY) {
+            synchronized(lock) {
+                listeners.forEach { it.onSettingsChanged() }
+            }
+        }
+    }
+
+    init {
+        sharedPref.registerOnSharedPreferenceChangeListener(prefListener)
+    }
+
+    fun addListener(listener: OnSettingsChangeListener) {
+        synchronized(lock) {
+            listeners.add(listener)
+        }
+    }
+
+    fun removeListener(listener: OnSettingsChangeListener) {
+        synchronized(lock) {
+            listeners.remove(listener)
+        }
+    }
 
     var webViewUrl: String
         get() =
@@ -59,11 +88,22 @@ private constructor(private val sharedPref: SharedPreferences) {
                 sharedPref.edit { putString(FONT_FAMILY_KEY, value) }
             }
 
+    var customFontPath: String?
+        get() =
+            synchronized(lock) {
+                return sharedPref.getString(CUSTOM_FONT_PATH_KEY, null)
+            }
+        set(value) =
+            synchronized(lock) {
+                sharedPref.edit { putString(CUSTOM_FONT_PATH_KEY, value) }
+            }
+
     companion object {
         private const val PREFS_NAME = ".WEBVIEW"
         private const val URL_KEY = "url"
         private const val FONT_SIZE_KEY = "font_size"
         private const val FONT_FAMILY_KEY = "font_family"
+        private const val CUSTOM_FONT_PATH_KEY = "custom_font_path"
 
         @Volatile private var instance: WebViewManager? = null
 

@@ -104,6 +104,8 @@ class TerminalTabFragment() : Fragment() {
     }
 
     override fun onDestroy() {
+        val webViewManager = WebViewManager.getInstance(requireContext())
+        webViewManager.removeListener(terminalView)
         terminalView.terminalClose()
         terminalViewModel.terminalTabFragments.remove(this)
         super.onDestroy()
@@ -124,16 +126,32 @@ class TerminalTabFragment() : Fragment() {
         terminalView.settings.domStorageEnabled = true
         terminalView.settings.javaScriptEnabled = true
         terminalView.settings.cacheMode = WebSettings.LOAD_DEFAULT
-        terminalView.settings.setSupportZoom(true)
-        terminalView.settings.builtInZoomControls = true
+        terminalView.settings.setSupportZoom(false)
+        terminalView.settings.builtInZoomControls = false
         terminalView.settings.displayZoomControls = false
 
         terminalView.webChromeClient = TerminalWebChromeClient()
         terminalView.webViewClient = TerminalWebViewClient()
         terminalView.addJavascriptInterface(TerminalViewInterface(), "TerminalApp")
 
+        val webViewManager = WebViewManager.getInstance(requireContext())
+        webViewManager.addListener(terminalView)
+
         (activity as MainActivity).modifierKeysController.addTerminalView(terminalView)
         terminalViewModel.terminalTabFragments.add(this)
+    }
+
+    private fun getCustomFontBase64(path: String?): String? {
+        if (path == null) return null
+        return try {
+            val uri = Uri.parse(path)
+            requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+                Base64.encodeToString(inputStream.readBytes(), Base64.NO_WRAP)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to read font file", e)
+            null
+        }
     }
 
     private inner class TerminalWebChromeClient : WebChromeClient() {
@@ -239,6 +257,7 @@ class TerminalTabFragment() : Fragment() {
                             terminalView.applyFontSettings(
                                 webViewManager.fontSize,
                                 webViewManager.fontFamily,
+                                getCustomFontBase64(webViewManager.customFontPath)
                             )
                             terminalView.mapTouchToMouseEvent()
                             terminalView.applyTerminalDisconnectCallback()
