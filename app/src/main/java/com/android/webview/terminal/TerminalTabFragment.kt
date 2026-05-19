@@ -143,6 +143,44 @@ class TerminalTabFragment() : Fragment() {
         terminalViewModel.terminalTabFragments.add(this)
     }
 
+    private fun getColorsConfig(path: String?): String? {
+        if (path == null) return null
+        return try {
+            val uri = Uri.parse(path)
+            requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+                val content = String(inputStream.readBytes())
+                parseColors(content)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to read colors file", e)
+            null
+        }
+    }
+
+    private fun parseColors(content: String): String {
+        val colors = mutableMapOf<String, String>()
+        content.lines().forEach { line ->
+            val trimmed = line.trim()
+            if (trimmed.contains("=")) {
+                val parts = trimmed.split("=", limit = 2)
+                val key = parts[0].trim().lowercase()
+                val value = parts[1].trim()
+                if (value.startsWith("#")) {
+                    colors[key] = value
+                }
+            }
+        }
+
+        // Build JSON-like object for xterm.js theme
+        val sb = StringBuilder("{")
+        colors.forEach { (key, value) ->
+            sb.append("\"$key\":\"$value\",")
+        }
+        if (sb.length > 1) sb.setLength(sb.length - 1)
+        sb.append("}")
+        return sb.toString()
+    }
+
     private fun getCustomFontBase64(path: String?): String? {
         if (path == null) return null
         return try {
@@ -259,7 +297,8 @@ class TerminalTabFragment() : Fragment() {
                             terminalView.applyFontSettings(
                                 webViewManager.fontSize,
                                 webViewManager.fontFamily,
-                                getCustomFontBase64(webViewManager.customFontPath)
+                                getCustomFontBase64(webViewManager.customFontPath),
+                                getColorsConfig(webViewManager.customColorsPath)
                             )
                             terminalView.mapTouchToMouseEvent()
                             terminalView.applyTerminalDisconnectCallback()

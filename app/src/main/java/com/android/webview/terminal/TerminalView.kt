@@ -88,9 +88,48 @@ class TerminalView(context: Context, attrs: AttributeSet?) :
             applyFontSettings(
                 webViewManager.fontSize,
                 webViewManager.fontFamily,
-                getCustomFontBase64(webViewManager.customFontPath)
+                getCustomFontBase64(webViewManager.customFontPath),
+                getColorsConfig(webViewManager.customColorsPath)
             )
         }
+    }
+
+    private fun getColorsConfig(path: String?): String? {
+        if (path == null) return null
+        return try {
+            val uri = Uri.parse(path)
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val content = String(inputStream.readBytes())
+                parseColors(content)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to read colors file", e)
+            null
+        }
+    }
+
+    private fun parseColors(content: String): String {
+        val colors = mutableMapOf<String, String>()
+        content.lines().forEach { line ->
+            val trimmed = line.trim()
+            if (trimmed.contains("=")) {
+                val parts = trimmed.split("=", limit = 2)
+                val key = parts[0].trim().lowercase()
+                val value = parts[1].trim()
+                if (value.startsWith("#")) {
+                    colors[key] = value
+                }
+            }
+        }
+        
+        // Build JSON-like object for xterm.js theme
+        val sb = StringBuilder("{")
+        colors.forEach { (key, value) ->
+            sb.append("\"$key\":\"$value\",")
+        }
+        if (sb.length > 1) sb.setLength(sb.length - 1)
+        sb.append("}")
+        return sb.toString()
     }
 
     private fun getCustomFontBase64(path: String?): String? {
@@ -111,14 +150,11 @@ class TerminalView(context: Context, attrs: AttributeSet?) :
         return String(context.assets.open(filePath).readBytes())
     }
 
-    fun applyFontSettings(fontSize: Int, fontFamily: String, customFontBase64: String? = null) {
+    fun applyFontSettings(fontSize: Int, fontFamily: String, customFontBase64: String? = null, themeJson: String? = null) {
         this.evaluateJavascript(fontHandler, null)
-        val fontData = customFontBase64 ?: "null"
-        val jsCall = if (customFontBase64 != null) {
-            "window.applyFontSettings($fontSize, '$fontFamily', '$fontData')"
-        } else {
-            "window.applyFontSettings($fontSize, '$fontFamily', null)"
-        }
+        val fontData = if (customFontBase64 != null) "'$customFontBase64'" else "null"
+        val themeData = themeJson ?: "null"
+        val jsCall = "window.applyFontSettings($fontSize, '$fontFamily', $fontData, $themeData)"
         this.evaluateJavascript(jsCall, null)
     }
 

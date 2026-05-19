@@ -224,4 +224,9 @@
     <string name="settings_font_picker_title">Custom font file</string>
     <!-- Settings menu subtitle for font picker [CHAR LIMIT=none] -->
     <string name="settings_font_picker_subtitle">Pick a .ttf or .otf file from storage.</string>
+
+    <!-- Settings menu title for color picker [CHAR LIMIT=none] -->
+    <string name="settings_color_picker_title">Custom colors file</string>
+    <!-- Settings menu subtitle for color picker [CHAR LIMIT=none] -->
+    <string name="settings_color_picker_subtitle">Pick an .ini file with terminal colors.</string>
 </resources>

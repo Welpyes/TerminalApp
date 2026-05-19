@@ -20,6 +20,7 @@ enum class SettingsItemEnum {
     FontSizeSettingsItem,
     FontFamilySettingsItem,
     FontPickerSettingsItem,
+    ColorPickerSettingsItem,
 }
 
 class SettingsItem(

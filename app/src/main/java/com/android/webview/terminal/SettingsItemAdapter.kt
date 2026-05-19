@@ -124,6 +124,9 @@ class SettingsItemAdapter(private val dataSet: List<SettingsItem>) :
             } else if (type == SettingsItemEnum.FontPickerSettingsItem) {
                 (view.context as? SettingsActivity)?.pickFont()
                 return@setOnClickListener
+            } else if (type == SettingsItemEnum.ColorPickerSettingsItem) {
+                (view.context as? SettingsActivity)?.pickColors()
+                return@setOnClickListener
             }
         }
     }

@@ -15,7 +15,7 @@
  */
 
 (function() {
-  window.applyFontSettings = function(fontSize, fontFamily, customFontBase64) {
+  window.applyFontSettings = function(fontSize, fontFamily, customFontBase64, theme) {
     const styleId = 'terminal-font-settings';
     let style = document.getElementById(styleId);
     if (!style) {
@@ -56,6 +56,11 @@
     if (window.term) {
       window.term.options.fontSize = fontSize;
       window.term.options.fontFamily = finalFontFamily;
+      
+      if (theme) {
+        window.term.options.theme = theme;
+      }
+
       // Force refresh of the terminal
       if (window.term.refresh) {
           window.term.refresh(0, window.term.rows - 1);

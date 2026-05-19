@@ -36,6 +36,16 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private val pickColorsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.data?.let { uri ->
+                // Persist access to the URI
+                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                WebViewManager.getInstance(this).customColorsPath = uri.toString()
+            }
+        }
+    }
+
     fun pickFont() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -44,6 +54,14 @@ class SettingsActivity : AppCompatActivity() {
             putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
         }
         pickFontLauncher.launch(intent)
+    }
+
+    fun pickColors() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+        pickColorsLauncher.launch(intent)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,6 +105,15 @@ class SettingsActivity : AppCompatActivity() {
                 resources.getString(R.string.settings_font_picker_subtitle),
                 R.drawable.baseline_storage_24,
                 SettingsItemEnum.FontPickerSettingsItem,
+            )
+        )
+
+        settingsItems.add(
+            SettingsItem(
+                resources.getString(R.string.settings_color_picker_title),
+                resources.getString(R.string.settings_color_picker_subtitle),
+                R.drawable.baseline_storage_24,
+                SettingsItemEnum.ColorPickerSettingsItem,
             )
         )
 

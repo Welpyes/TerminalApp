@@ -29,7 +29,7 @@ private constructor(private val sharedPref: SharedPreferences) {
     }
 
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == URL_KEY || key == FONT_SIZE_KEY || key == FONT_FAMILY_KEY || key == CUSTOM_FONT_PATH_KEY) {
+        if (key == URL_KEY || key == FONT_SIZE_KEY || key == FONT_FAMILY_KEY || key == CUSTOM_FONT_PATH_KEY || key == CUSTOM_COLORS_PATH_KEY) {
             synchronized(lock) {
                 listeners.forEach { it.onSettingsChanged() }
             }
@@ -98,12 +98,23 @@ private constructor(private val sharedPref: SharedPreferences) {
                 sharedPref.edit { putString(CUSTOM_FONT_PATH_KEY, value) }
             }
 
+    var customColorsPath: String?
+        get() =
+            synchronized(lock) {
+                return sharedPref.getString(CUSTOM_COLORS_PATH_KEY, null)
+            }
+        set(value) =
+            synchronized(lock) {
+                sharedPref.edit { putString(CUSTOM_COLORS_PATH_KEY, value) }
+            }
+
     companion object {
         private const val PREFS_NAME = ".WEBVIEW"
         private const val URL_KEY = "url"
         private const val FONT_SIZE_KEY = "font_size"
         private const val FONT_FAMILY_KEY = "font_family"
         private const val CUSTOM_FONT_PATH_KEY = "custom_font_path"
+        private const val CUSTOM_COLORS_PATH_KEY = "custom_colors_path"
 
         @Volatile private var instance: WebViewManager? = null
 
