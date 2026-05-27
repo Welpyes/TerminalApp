@@ -29,7 +29,7 @@ private constructor(private val sharedPref: SharedPreferences) {
     }
 
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == URL_KEY || key == FONT_SIZE_KEY || key == FONT_FAMILY_KEY || key == CUSTOM_FONT_PATH_KEY || key == CUSTOM_COLORS_PATH_KEY) {
+        if (key == URL_KEY || key == FONT_SIZE_KEY || key == FONT_FAMILY_KEY || key == CUSTOM_FONT_PATH_KEY || key == CUSTOM_COLORS_PATH_KEY || key == EXTRA_KEYS_CONFIG_KEY) {
             synchronized(lock) {
                 listeners.forEach { it.onSettingsChanged() }
             }
@@ -66,6 +66,16 @@ private constructor(private val sharedPref: SharedPreferences) {
         set(value) =
             synchronized(lock) {
                 sharedPref.edit { putString(URL_KEY, value) }
+            }
+
+    var extraKeysConfig: String
+        get() =
+            synchronized(lock) {
+                return sharedPref.getString(EXTRA_KEYS_CONFIG_KEY, DEFAULT_EXTRA_KEYS) ?: DEFAULT_EXTRA_KEYS
+            }
+        set(value) =
+            synchronized(lock) {
+                sharedPref.edit { putString(EXTRA_KEYS_CONFIG_KEY, value) }
             }
 
     var fontSize: Int

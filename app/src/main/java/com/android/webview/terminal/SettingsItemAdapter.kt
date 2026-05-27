@@ -127,6 +127,27 @@ class SettingsItemAdapter(private val dataSet: List<SettingsItem>) :
             } else if (type == SettingsItemEnum.ColorPickerSettingsItem) {
                 (view.context as? SettingsActivity)?.pickColors()
                 return@setOnClickListener
+            } else if (type == SettingsItemEnum.ExtraKeysSettingsItem) {
+                val currentConfig = webViewManager.extraKeysConfig
+                val inputConfig = EditText(view.context)
+                inputConfig.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                inputConfig.setText(currentConfig)
+
+                AlertDialog.Builder(view.context)
+                    .setTitle(R.string.settings_extra_keys_title)
+                    .setPositiveButton(android.R.string.ok) { dialog, which ->
+                        val newConfig = inputConfig.text.toString()
+                        if (currentConfig != newConfig) {
+                            webViewManager.extraKeysConfig = newConfig
+                        }
+                    }
+                    .setNegativeButton(android.R.string.cancel) { dialog, which ->
+                        dialog.dismiss()
+                    }
+                    .setView(inputConfig)
+                    .create()
+                    .show()
+                return@setOnClickListener
             }
         }
     }

@@ -229,4 +229,9 @@
     <string name="settings_color_picker_title">Custom colors file</string>
     <!-- Settings menu subtitle for color picker [CHAR LIMIT=none] -->
     <string name="settings_color_picker_subtitle">Pick an .ini file with terminal colors.</string>
+
+    <!-- Settings menu title for extra keys [CHAR LIMIT=none] -->
+    <string name="settings_extra_keys_title">Extra keys</string>
+    <!-- Settings menu subtitle for extra keys [CHAR LIMIT=none] -->
+    <string name="settings_extra_keys_subtitle">Customize bottom shortcut buttons (Termux format).</string>
 </resources>

@@ -16,32 +16,19 @@
 package com.android.webview.terminal
 
 import android.view.KeyEvent
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
+import android.widget.Button
+import android.widget.LinearLayout
+import androidx.appcompat.view.ContextThemeWrapper
 
 class ModifierKeysController(val activity: MainActivity, val parent: ViewGroup) {
     private val window = activity.window
-    private val keysSingleLine: View
-    private val keysDoubleLine: View
     private var activeTerminalView: TerminalView? = null
-    private var keysInSingleLine: Boolean = false
+    private val webViewManager = WebViewManager.getInstance(activity)
 
     init {
-        // Prepare the two modifier keys layout, but only attach the double line one since the
-        // keysInSingleLine is set to true by default
-        val layout = LayoutInflater.from(activity)
-        keysSingleLine = layout.inflate(R.layout.modifier_keys_singleline, parent, false)
-        keysDoubleLine = layout.inflate(R.layout.modifier_keys_doubleline, parent, false)
-
-        addClickListeners(keysSingleLine)
-        addClickListeners(keysDoubleLine)
-
-        keysSingleLine.visibility = View.GONE
-        keysDoubleLine.visibility = View.GONE
-        parent.addView(keysDoubleLine)
-
         // Setup for the update to be called when needed
         window.decorView.rootView.setOnApplyWindowInsetsListener { _: View?, insets: WindowInsets ->
             update()
@@ -61,77 +48,97 @@ class ModifierKeysController(val activity: MainActivity, val parent: ViewGroup) 
         }
     }
 
-    private fun addClickListeners(keys: View) {
-        // Only ctrl key is special, it communicates with xtermjs to modify key event with ctrl key
-        keys
-            .findViewById<View>(R.id.btn_ctrl)
-            .setOnClickListener {
-                activeTerminalView!!.mapCtrlKey()
-                activeTerminalView!!.enableCtrlKey()
+    fun update() {
+        parent.removeAllViews()
+        
+        // Pass if no TerminalView focused.
+        if (activeTerminalView == null) {
+            parent.visibility = View.GONE
+            return
+        }
+
+        val config = webViewManager.extraKeysConfig
+        val rows = ExtraKeysHelper.parse(config)
+        
+        val container = LinearLayout(activity).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            orientation = LinearLayout.VERTICAL
+        }
+
+        for (rowKeys in rows) {
+            val rowLayout = LinearLayout(activity).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                orientation = LinearLayout.HORIZONTAL
             }
 
-        val listener =
-            View.OnClickListener { v: View ->
-                BTN_KEY_CODE_MAP[v.id]?.also { keyCode ->
-                    activeTerminalView!!.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
-                    activeTerminalView!!.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
-                }
+            for (extraKey in rowKeys) {
+                val btn = createButton(extraKey)
+                rowLayout.addView(btn)
             }
+            container.addView(rowLayout)
+        }
 
-        for (btn in BTN_KEY_CODE_MAP.keys) {
-            keys.findViewById<View>(btn).setOnClickListener(listener)
+        parent.addView(container)
+        parent.visibility = if (needToShowKeys()) View.VISIBLE else View.GONE
+    }
+
+    private fun createButton(extraKey: ExtraKey): Button {
+        // Use ContextThemeWrapper to apply ModifierKeyStyle
+        val btn = Button(ContextThemeWrapper(activity, R.style.ModifierKeyStyle), null, 0)
+        
+        btn.text = extraKey.display ?: extraKey.key
+        btn.textSize = 10f
+        
+        btn.setOnClickListener {
+            handleKeyPress(extraKey)
+        }
+        
+        return btn
+    }
+
+    private fun handleKeyPress(extraKey: ExtraKey) {
+        val terminal = activeTerminalView ?: return
+        
+        if (extraKey.macro != null) {
+            // TODO: Implement macro handling
+            // For now, treat as single key if macro is just one word
+            dispatchKey(extraKey.key)
+            return
+        }
+
+        if (extraKey.key == "CTRL") {
+            terminal.mapCtrlKey()
+            terminal.enableCtrlKey()
+        } else {
+            dispatchKey(extraKey.key)
         }
     }
 
-    fun update() {
-        // Pass if no TerminalView focused.
-        if (activeTerminalView == null) {
-            val keys = if (keysInSingleLine) keysSingleLine else keysDoubleLine
-            keys.visibility = View.GONE
-        } else {
-            // select single line or double line
-            val needSingleLine = needsKeysInSingleLine()
-            if (keysInSingleLine != needSingleLine) {
-                if (needSingleLine) {
-                    parent.removeView(keysDoubleLine)
-                    parent.addView(keysSingleLine)
-                } else {
-                    parent.removeView(keysSingleLine)
-                    parent.addView(keysDoubleLine)
-                }
-                keysInSingleLine = needSingleLine
-            }
-            // set visibility
-            val needShow = needToShowKeys()
-            val keys = if (keysInSingleLine) keysSingleLine else keysDoubleLine
-            keys.visibility = if (needShow) View.VISIBLE else View.GONE
+    private fun dispatchKey(keyName: String) {
+        val terminal = activeTerminalView ?: return
+        val keyCode = ExtraKeysHelper.getKeyCode(keyName)
+        
+        if (keyCode != null && keyCode != -1) {
+            terminal.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+            terminal.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
+        } else if (keyName.length == 1) {
+            // Handle literal characters
+            val event = KeyEvent(0, 0, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_UNKNOWN, 0, 0, 0, 0, KeyEvent.FLAG_SOFT_KEYBOARD)
+            // WebView should handle characters. For now, we might need a better way to send literals.
+            // Termux usually sends characters via the terminal emulator. 
+            // In WebView, we might need to use evaluateJavascript to trigger input events.
         }
     }
 
     // Modifier keys are required only when IME is shown and the HW qwerty keyboard is not present
-    private fun needToShowKeys(): Boolean = false
-
-    // If terminal's height including height of modifier keys is less than 40% of the screen
-    // height, we need to show modifier keys in a single line to save the vertical space
-    private fun needsKeysInSingleLine(): Boolean {
-        val keys = if (keysInSingleLine) keysSingleLine else keysDoubleLine
-        return activeTerminalView!!.height + keys.height < 0.4f * activity.window.decorView.height
-    }
-
-    companion object {
-        private val BTN_KEY_CODE_MAP =
-            mapOf(
-                R.id.btn_tab to KeyEvent.KEYCODE_TAB, // Alt key sends ESC keycode
-                R.id.btn_alt to KeyEvent.KEYCODE_ESCAPE,
-                R.id.btn_esc to KeyEvent.KEYCODE_ESCAPE,
-                R.id.btn_left to KeyEvent.KEYCODE_DPAD_LEFT,
-                R.id.btn_right to KeyEvent.KEYCODE_DPAD_RIGHT,
-                R.id.btn_up to KeyEvent.KEYCODE_DPAD_UP,
-                R.id.btn_down to KeyEvent.KEYCODE_DPAD_DOWN,
-                R.id.btn_home to KeyEvent.KEYCODE_MOVE_HOME,
-                R.id.btn_end to KeyEvent.KEYCODE_MOVE_END,
-                R.id.btn_pgup to KeyEvent.KEYCODE_PAGE_UP,
-                R.id.btn_pgdn to KeyEvent.KEYCODE_PAGE_DOWN,
-            )
+    private fun needToShowKeys(): Boolean {
+        // For debugging/MVP, always show if terminal is focused
+        return activeTerminalView != null
     }
 }

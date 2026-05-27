@@ -117,6 +117,15 @@ class SettingsActivity : AppCompatActivity() {
             )
         )
 
+        settingsItems.add(
+            SettingsItem(
+                resources.getString(R.string.settings_extra_keys_title),
+                resources.getString(R.string.settings_extra_keys_subtitle),
+                R.drawable.ic_keyboard,
+                SettingsItemEnum.ExtraKeysSettingsItem,
+            )
+        )
+
         val settingsListItemAdapter = SettingsItemAdapter(settingsItems)
 
         val recyclerView: RecyclerView = findViewById(R.id.settings_list_recycler_view)
