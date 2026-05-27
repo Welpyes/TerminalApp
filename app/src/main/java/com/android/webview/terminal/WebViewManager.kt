@@ -125,6 +125,8 @@ private constructor(private val sharedPref: SharedPreferences) {
         private const val FONT_FAMILY_KEY = "font_family"
         private const val CUSTOM_FONT_PATH_KEY = "custom_font_path"
         private const val CUSTOM_COLORS_PATH_KEY = "custom_colors_path"
+        private const val EXTRA_KEYS_CONFIG_KEY = "extra_keys_config"
+        private const val DEFAULT_EXTRA_KEYS = "[[ 'ESC', 'TAB', 'CTRL', 'ALT', 'UP', 'DOWN', 'LEFT', 'RIGHT' ]]"
 
         @Volatile private var instance: WebViewManager? = null
 
